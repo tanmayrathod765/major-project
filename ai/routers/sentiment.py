@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from transformers import pipeline
 from typing import List
 
 router = APIRouter()
@@ -9,6 +8,7 @@ sentiment_model = None
 def get_sentiment_model():
     global sentiment_model
     if sentiment_model is None:
+        from transformers import pipeline
         print("Loading BERT sentiment model...")
         sentiment_model = pipeline(
             "sentiment-analysis",
