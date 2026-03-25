@@ -90,9 +90,10 @@ app.use(cors({
     if (!origin) return callback(null, true)
 
     const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin)
+    const isVercelPreview = /^https:\/\/.*\.vercel\.app$/.test(origin)
     const isAllowed = allowedOrigins.includes(origin)
 
-    if (isLocalhost || isAllowed) return callback(null, true)
+    if (isLocalhost || isVercelPreview || isAllowed) return callback(null, true)
     return callback(new Error("Not allowed by CORS"))
   },
 }))
