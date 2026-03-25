@@ -21,18 +21,21 @@ router.post("/:patientId/generate", protect, async (req, res) => {
     }
 
     let sourcePath = memory.filePath
+    let hasReferenceAudio = true
     if (!fs.existsSync(sourcePath)) {
       const normalized = path.basename(String(memory.filePath).replace(/\\/g, "/"))
       const fallbackPath = path.join(uploadsDir, normalized)
       if (fs.existsSync(fallbackPath)) {
         sourcePath = fallbackPath
       } else {
-        return res.status(404).json({ message: "Audio file not found on server" })
+        hasReferenceAudio = false
       }
     }
 
     const formData = new FormData()
-    formData.append("audio", fs.createReadStream(sourcePath))
+    if (hasReferenceAudio) {
+      formData.append("audio", fs.createReadStream(sourcePath))
+    }
     formData.append("text", text)
     if (language) formData.append("language", language)
 

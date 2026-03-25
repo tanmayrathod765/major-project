@@ -8,7 +8,7 @@ router = APIRouter()
 
 @router.post("/clone-voice")
 async def clone_voice(
-    audio: UploadFile = File(...),
+    audio: UploadFile | None = File(None),
     text: str = Form(...),
     language: str = Form("hi")
 ):
@@ -21,11 +21,12 @@ async def clone_voice(
         allowed_languages = {"hi", "en", "mr", "gu", "pa", "bn"}
         lang = language if language in allowed_languages else "hi"
 
-        # Save reference audio (for future use)
-        suffix = os.path.splitext(audio.filename)[1] or ".wav"
-        ref_path = os.path.join(tempfile.gettempdir(), f"ref_{tempfile.gettempprefix()}{suffix}")
-        with open(ref_path, "wb") as f:
-            f.write(await audio.read())
+        ref_path = None
+        if audio is not None:
+            suffix = os.path.splitext(audio.filename)[1] or ".wav"
+            ref_path = os.path.join(tempfile.gettempdir(), f"ref_{tempfile.gettempprefix()}{suffix}")
+            with open(ref_path, "wb") as f:
+                f.write(await audio.read())
 
         # Generate speech
         out_path = os.path.join(tempfile.gettempdir(), f"ghost_{tempfile.gettempprefix()}.mp3")
@@ -33,7 +34,7 @@ async def clone_voice(
         tts.save(out_path)
 
         # Cleanup reference
-        if os.path.exists(ref_path):
+        if ref_path and os.path.exists(ref_path):
             os.remove(ref_path)
 
         return FileResponse(
