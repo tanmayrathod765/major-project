@@ -11,6 +11,7 @@ app = FastAPI(title="GriefBridge AI Core")
 allowed_origins = [
     "http://localhost:5173",
     "http://localhost:5000",
+    "https://major-project-ge23-brown.vercel.app",
 ]
 
 frontend_url = os.getenv("FRONTEND_URL")
