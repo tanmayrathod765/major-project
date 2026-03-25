@@ -24,7 +24,7 @@ if backend_url:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=r"(^https?://(localhost|127\.0\.0\.1)(:\d+)?$)|(^https://[a-zA-Z0-9-]+\.vercel\.app$)|(^https://[a-zA-Z0-9-]+\.onrender\.com$)",
     allow_methods=["*"],
     allow_headers=["*"],
 )
