@@ -6,6 +6,7 @@ import Patient from "../models/Patient.js"
 import protect from "../middleware/auth.js"
 
 const router = express.Router()
+const AI_BASE_URL = process.env.AI_URL || "http://127.0.0.1:8000"
 
 router.get("/:patientId/generate", protect, async (req, res) => {
   try {
@@ -31,7 +32,7 @@ router.get("/:patientId/generate", protect, async (req, res) => {
       })),
     }
 
-    const aiRes = await fetch("http://localhost:8000/ai/life-story", {
+    const aiRes = await fetch(`${AI_BASE_URL}/ai/life-story`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

@@ -5,6 +5,7 @@ import Memory from "../models/Memory.js"
 import protect from "../middleware/auth.js"
 
 const router = express.Router()
+const AI_BASE_URL = process.env.AI_URL || "http://127.0.0.1:8000"
 
 router.post("/:patientId", protect, async (req, res) => {
   try {
@@ -15,7 +16,7 @@ router.post("/:patientId", protect, async (req, res) => {
       Memory.find({ patient: req.params.patientId }).limit(10),
     ])
 
-    const aiRes = await fetch("http://localhost:8000/ai/last-letter", {
+    const aiRes = await fetch(`${AI_BASE_URL}/ai/last-letter`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

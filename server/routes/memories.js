@@ -12,6 +12,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage })
 const router = express.Router()
+const AI_BASE_URL = process.env.AI_URL || "http://127.0.0.1:8000"
 
 router.post("/:patientId", protect, upload.single("file"), async (req, res) => {
   const memory = await Memory.create({
@@ -34,7 +35,7 @@ if (req.body.type === "audio" && req.file) {
 
       console.log("Sending to AI server...")
       
-      const aiRes = await fetch("http://localhost:8000/ai/transcribe", {
+      const aiRes = await fetch(`${AI_BASE_URL}/ai/transcribe`, {
         method: "POST",
         body: formData,
       })

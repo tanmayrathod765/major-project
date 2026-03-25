@@ -6,6 +6,7 @@ import protect from "../middleware/auth.js"
 import Memory from "../models/Memory.js"
 
 const router = express.Router()
+const AI_BASE_URL = process.env.AI_URL || "http://127.0.0.1:8000"
 
 router.post("/:patientId/generate", protect, async (req, res) => {
   try {
@@ -22,7 +23,7 @@ router.post("/:patientId/generate", protect, async (req, res) => {
     formData.append("text", text)
     if (language) formData.append("language", language)
 
-    const aiRes = await fetch("http://127.0.0.1:8000/ai/clone-voice", {
+    const aiRes = await fetch(`${AI_BASE_URL}/ai/clone-voice`, {
       method: "POST",
       body: formData,
       headers: formData.getHeaders(),
