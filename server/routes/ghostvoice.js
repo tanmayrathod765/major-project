@@ -2,11 +2,13 @@ import express from "express"
 import fetch from "node-fetch"
 import FormData from "form-data"
 import fs from "fs"
+import path from "path"
 import protect from "../middleware/auth.js"
 import Memory from "../models/Memory.js"
 
 const router = express.Router()
 const AI_BASE_URL = process.env.AI_URL || "http://127.0.0.1:8000"
+const uploadsDir = path.resolve(process.cwd(), "uploads")
 
 router.post("/:patientId/generate", protect, async (req, res) => {
   try {
@@ -18,8 +20,19 @@ router.post("/:patientId/generate", protect, async (req, res) => {
       return res.status(400).json({ message: "Audio memory not found" })
     }
 
+    let sourcePath = memory.filePath
+    if (!fs.existsSync(sourcePath)) {
+      const normalized = path.basename(String(memory.filePath).replace(/\\/g, "/"))
+      const fallbackPath = path.join(uploadsDir, normalized)
+      if (fs.existsSync(fallbackPath)) {
+        sourcePath = fallbackPath
+      } else {
+        return res.status(404).json({ message: "Audio file not found on server" })
+      }
+    }
+
     const formData = new FormData()
-    formData.append("audio", fs.createReadStream(memory.filePath))
+    formData.append("audio", fs.createReadStream(sourcePath))
     formData.append("text", text)
     if (language) formData.append("language", language)
 
@@ -33,7 +46,7 @@ router.post("/:patientId/generate", protect, async (req, res) => {
       let message = "Voice generation failed"
       try {
         const err = await aiRes.json()
-        message = err.error || err.message || message
+        message = err.error || err.message || err.detail || message
       } catch {}
       return res.status(500).json({ message })
     }
@@ -41,7 +54,7 @@ router.post("/:patientId/generate", protect, async (req, res) => {
     const contentType = aiRes.headers.get("content-type") || ""
     if (contentType.includes("application/json")) {
       const payload = await aiRes.json()
-      return res.status(500).json({ message: payload.error || payload.message || "Voice generation failed" })
+      return res.status(500).json({ message: payload.error || payload.message || payload.detail || "Voice generation failed" })
     }
 
     const audioBuffer = await aiRes.buffer()

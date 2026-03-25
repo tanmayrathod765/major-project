@@ -5,6 +5,7 @@ import fs from "fs"
 import Memory from "../models/Memory.js"
 import protect from "../middleware/auth.js"
 import fetch from "node-fetch"
+import FormData from "form-data"
 
 const uploadsDir = path.resolve(process.cwd(), "uploads")
 if (!fs.existsSync(uploadsDir)) {
@@ -37,17 +38,16 @@ if (req.body.type === "audio" && req.file) {
     try {
       const absoluteFilePath = path.join(uploadsDir, req.file.filename)
       console.log("Starting transcription for:", absoluteFilePath)
-      
-      const fileBuffer = fs.readFileSync(absoluteFilePath)
-      const blob = new Blob([fileBuffer], { type: "audio/mpeg" })
+
       const formData = new FormData()
-      formData.append("file", blob, req.file.filename)
+      formData.append("file", fs.createReadStream(absoluteFilePath), req.file.filename)
 
       console.log("Sending to AI server...")
       
       const aiRes = await fetch(`${AI_BASE_URL}/ai/transcribe`, {
         method: "POST",
         body: formData,
+        headers: formData.getHeaders(),
       })
 
       const aiData = await aiRes.json()
