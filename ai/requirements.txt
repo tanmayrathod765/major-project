@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+python-multipart
+numpy
+opencv-python-headless
+pillow
+pytesseract
+openai-whisper
+transformers
+torch
+groq
+gTTS
+fpdf2
+requests

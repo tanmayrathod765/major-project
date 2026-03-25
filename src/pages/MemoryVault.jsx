@@ -9,6 +9,9 @@ import Sidebar from "../components/Sidebar"
 import api from "../utils/api"
 import toast from "react-hot-toast"
 
+const SERVER_BASE_URL = import.meta.env.VITE_SERVER_URL
+  || ((import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api\/?$/, ""))
+
 const DECADES = ["1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"]
 
 const typeConfig = {
@@ -106,7 +109,7 @@ const UploadZone = ({ type, onUpload }) => {
 }
 
 const MemoryCard = ({ memory, onDelete }) => {
-  const BASE_URL = "http://localhost:5000"
+  const BASE_URL = SERVER_BASE_URL
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition">

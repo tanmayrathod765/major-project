@@ -8,9 +8,22 @@ import os
 load_dotenv()
 app = FastAPI(title="GriefBridge AI Core")
 
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:5000",
+]
+
+frontend_url = os.getenv("FRONTEND_URL")
+backend_url = os.getenv("BACKEND_URL")
+
+if frontend_url:
+    allowed_origins.extend([value.strip() for value in frontend_url.split(",") if value.strip()])
+if backend_url:
+    allowed_origins.extend([value.strip() for value in backend_url.split(",") if value.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5000"],
+    allow_origins=allowed_origins,
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_methods=["*"],
     allow_headers=["*"],

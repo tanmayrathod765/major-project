@@ -4,6 +4,8 @@ import { Camera, CameraOff, Smile, AlertCircle, Sparkles, Activity } from "lucid
 import Sidebar from "../components/Sidebar"
 import toast from "react-hot-toast"
 
+const AI_BASE_URL = import.meta.env.VITE_AI_URL || "http://localhost:8000"
+
 const EMOTION_CONFIG = {
   happy: { emoji: "😊", color: "text-green-600", bg: "bg-green-100", label: "Happy" },
   sad: { emoji: "😢", color: "text-blue-600", bg: "bg-blue-100", label: "Sad" },
@@ -93,7 +95,7 @@ const EmotionDetection = () => {
         formData.append("file", blob, "capture.jpg")
 
         const token = localStorage.getItem("token")
-        const res = await fetch("http://localhost:8000/ai/detect-emotion", {
+        const res = await fetch(`${AI_BASE_URL}/ai/detect-emotion`, {
           method: "POST",
           body: formData,
         })

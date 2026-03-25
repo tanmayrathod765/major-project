@@ -8,6 +8,11 @@ import Sidebar from "../components/Sidebar"
 import api from "../utils/api"
 import toast from "react-hot-toast"
 
+const SERVER_BASE_URL = import.meta.env.VITE_SERVER_URL
+  || ((import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api\/?$/, ""))
+const WS_BASE_URL = import.meta.env.VITE_WS_URL
+  || SERVER_BASE_URL.replace(/^http/, "ws")
+
 const REACTIONS = [
   { key: "smile", label: "Smiled", icon: <Smile size={18} />, color: "bg-green-100 text-green-700 border-green-200" },
   { key: "word", label: "Spoke", icon: <MessageCircle size={18} />, color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -51,7 +56,7 @@ const VisitCompanion = () => {
   }
 
   const connectWebSocket = () => {
-    const ws = new WebSocket("ws://localhost:5000")
+    const ws = new WebSocket(WS_BASE_URL)
     ws.onopen = () => {
       ws.send(JSON.stringify({ type: "join", patientId: id }))
       console.log("WebSocket connected")

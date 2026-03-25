@@ -5,6 +5,8 @@ import Sidebar from "../components/Sidebar"
 import api from "../utils/api"
 import toast from "react-hot-toast"
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+
 const GhostVoice = () => {
   const { id } = useParams()
   const [audioMemories, setAudioMemories] = useState([])
@@ -38,7 +40,7 @@ const GhostVoice = () => {
     setAudioUrl(null)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`http://localhost:5000/api/ghost-voice/${id}/generate`, {
+      const res = await fetch(`${API_BASE_URL}/ghost-voice/${id}/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
