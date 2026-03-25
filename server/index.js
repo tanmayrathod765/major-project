@@ -81,7 +81,21 @@ wss.on("connection", (ws) => {
   })
 })
 
-app.use(cors({ origin: "http://localhost:5173" }))
+const allowedOrigins = [
+  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",").map((value) => value.trim()) : []),
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true)
+
+    const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin)
+    const isAllowed = allowedOrigins.includes(origin)
+
+    if (isLocalhost || isAllowed) return callback(null, true)
+    return callback(new Error("Not allowed by CORS"))
+  },
+}))
 app.use(express.json())
 app.use("/uploads", express.static("uploads"))
 

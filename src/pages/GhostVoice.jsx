@@ -10,6 +10,7 @@ const GhostVoice = () => {
   const [audioMemories, setAudioMemories] = useState([])
   const [selectedMemory, setSelectedMemory] = useState("")
   const [text, setText] = useState("")
+  const [language, setLanguage] = useState("hi")
   const [generating, setGenerating] = useState(false)
   const [audioUrl, setAudioUrl] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -43,7 +44,7 @@ const GhostVoice = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ text, memoryId: selectedMemory }),
+        body: JSON.stringify({ text, memoryId: selectedMemory, language }),
       })
 
       if (!res.ok) {
@@ -126,6 +127,8 @@ const GhostVoice = () => {
                 </label>
                 <select
                   id="lang"
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-dark focus:outline-none focus:border-primary"
                 >
                   <option value="hi">Hindi</option>
