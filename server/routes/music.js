@@ -1,6 +1,8 @@
 import express from "express"
 import fetch from "node-fetch"
 import protect from "../middleware/auth.js"
+import PatientContext from "../models/PatientContext.js"
+import { updatePatientContext } from "../services/contextEngine.js"
 
 const router = express.Router()
 
@@ -54,6 +56,49 @@ router.get("/search", protect, async (req, res) => {
     }))
 
     res.json({ videos })
+  } catch (e) {
+    res.status(500).json({ message: e.message })
+  }
+})
+
+router.get("/suggest/:patientId", protect, async (req, res) => {
+  try {
+    let context = await PatientContext.findOne({ patient: req.params.patientId })
+    if (!context || !context.tagIntelligence?.length || !context.musicIntelligence?.length) {
+      context = await updatePatientContext(req.params.patientId)
+    }
+
+    const musicGuide = context?.aiContext?.musicGuide || ""
+    const musicKeywords = context?.musicIntelligence
+      ?.flatMap(m => m.suggestedKeywords)
+      ?.slice(0, 3) || ["hindi songs"]
+
+    const bestDecade = context?.musicIntelligence
+      ?.sort((a, b) => b.responseScore - a.responseScore)[0]?.decade || "1980s"
+
+    // Search based on context
+    const topTag = context?.patterns?.topTriggerTags?.[0]
+    const searchQuery = topTag
+      ? `${bestDecade} ${topTag} songs`
+      : (musicKeywords[0] || `${bestDecade} hindi songs`)
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=6&key=${process.env.YOUTUBE_API_KEY}`
+
+    const response = await fetch(url)
+    const data = await response.json()
+
+    const videos = (data.items || []).map(item => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      channel: item.snippet.channelTitle,
+    }))
+
+    res.json({
+      videos,
+      reason: musicGuide || `Based on patient's memories`,
+      suggestedKeywords: musicKeywords,
+      bestDecade,
+    })
   } catch (e) {
     res.status(500).json({ message: e.message })
   }

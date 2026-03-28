@@ -13,8 +13,9 @@ const PatientProfile = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const [patient, setPatient] = useState(null)
+  const [context, setContext] = useState(null)
   const [loading, setLoading] = useState(true)
-
+  
   useEffect(() => {
     const fetchPatient = async () => {
       try {
@@ -27,6 +28,16 @@ const PatientProfile = () => {
       setLoading(false)
     }
     fetchPatient()
+  }, [id])
+
+  useEffect(() => {
+    const fetchContext = async () => {
+      try {
+        const res = await api.get(`/context/${id}`)
+        setContext(res.data)
+      } catch {}
+    }
+    fetchContext()
   }, [id])
 
   const features = [
@@ -90,6 +101,94 @@ const PatientProfile = () => {
             </div>
           </div>
         </div>
+
+        {context && context.tagIntelligence?.length > 0 && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Brain size={20} className="text-primary" />
+              <h2 className="font-semibold text-dark">AI Brain — What I Know</h2>
+              <button
+                onClick={() => api.post(`/context/${id}/refresh`).then(() => window.location.reload())}
+                className="ml-auto text-xs text-primary hover:underline"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {context.aiContext?.patientSummary && (
+              <p className="text-muted text-sm mb-4 leading-relaxed">
+                {context.aiContext.patientSummary}
+              </p>
+            )}
+
+            <div className="mb-4">
+              <p className="text-xs font-medium text-dark mb-2">Top Memory Triggers:</p>
+              <div className="flex flex-wrap gap-2">
+                {context.tagIntelligence?.slice(0, 8).map((t, i) => (
+                  <span
+                    key={i}
+                    className="text-xs px-3 py-1 rounded-full font-medium"
+                    style={{
+                      background: `hsl(${260 - i * 15}, 70%, ${95 - i * 3}%)`,
+                      color: `hsl(${260 - i * 15}, 70%, 30%)`
+                    }}
+                  >
+                    #{t.tag} ({t.triggerScore})
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: "MMSE", value: context.cognitive?.latestMMSE ? `${context.cognitive.latestMMSE}/30` : "N/A" },
+                { label: "Recall Rate", value: `${context.cognitive?.memoryRecallRate || 0}%` },
+                { label: "Best Time", value: context.patterns?.bestTimeOfDay || "Morning" },
+                { label: "Trend", value: context.cognitive?.mmsetrend || "Stable" },
+              ].map((stat, i) => (
+                <div key={i} className="bg-soft rounded-xl p-3 text-center">
+                  <p className="font-bold text-primary">{stat.value}</p>
+                  <p className="text-muted text-xs">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {context.aiContext?.visitGuide && (
+              <div className="mt-4 bg-green-50 border border-green-200 rounded-xl p-4">
+                <p className="text-xs font-medium text-green-700 mb-1">💡 Today's Visit Guide:</p>
+                <p className="text-sm text-dark">{context.aiContext.visitGuide}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {context && (
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain size={20} className="text-primary" />
+              <h2 className="font-semibold text-dark">AI Brain — Patient Summary</h2>
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full ml-auto">
+                Live
+              </span>
+            </div>
+            <p className="text-dark text-sm leading-relaxed mb-4">
+              {context.aiSummary || "Building patient profile..."}
+            </p>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: "MMSE", value: context.cognitive?.latestMMSE ? `${context.cognitive.latestMMSE}/30` : "N/A" },
+                { label: "Recall Rate", value: `${context.cognitive?.memoryRecallRate || 0}%` },
+                { label: "Best Time", value: context.patterns?.bestTimeOfDay || "Morning" },
+                { label: "Trend", value: context.cognitive?.mmsetrend || "Stable" },
+              ].map((stat, i) => (
+                <div key={i} className="bg-white rounded-xl p-3 text-center">
+                  <p className="font-bold text-primary text-lg">{stat.value}</p>
+                  <p className="text-muted text-xs">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Feature Grid */}
         <h2 className="text-xl font-bold text-dark mb-4">Care Features</h2>

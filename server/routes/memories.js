@@ -6,7 +6,7 @@ import Memory from "../models/Memory.js"
 import protect from "../middleware/auth.js"
 import fetch from "node-fetch"
 import FormData from "form-data"
-
+import { updatePatientContext } from "../services/contextEngine.js"
 const uploadsDir = path.resolve(process.cwd(), "uploads")
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true })
@@ -69,6 +69,7 @@ if (req.body.type === "audio" && req.file) {
   } catch (e) {
     res.status(500).json({ message: e.message })
   }
+  updatePatientContext(req.params.patientId).catch(console.error)
 })
 
 router.get("/:patientId", protect, async (req, res) => {

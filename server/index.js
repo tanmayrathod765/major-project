@@ -17,6 +17,7 @@ import lifeStoryRoutes from "./routes/lifestory.js"
 import assessmentRoutes from "./routes/assessment.js"
 import doctorRoutes from "./routes/doctor.js"
 import gameRoutes from "./routes/games.js"
+import contextRoutes from "./routes/context.js"
 dotenv.config()
 connectDB()
 
@@ -112,6 +113,7 @@ app.use("/api/life-story", lifeStoryRoutes)
 app.use("/api/assessment", assessmentRoutes)
 app.use("/api/doctor", doctorRoutes)
 app.use("/api/games", gameRoutes)
+app.use("/api/context", contextRoutes)
 app.get("/api/health", (req, res) => res.json({ status: "GriefBridge API running ✅" }))
 
 app.use((err, req, res, next) => {

@@ -11,28 +11,25 @@ router.post("/:patientId", protect, async (req, res) => {
   try {
     const { patientName, recipientName, relationship } = req.body
 
-    const [sessions, memories] = await Promise.all([
+    const [sessions, memories, context] = await Promise.all([
       Session.find({ patient: req.params.patientId }).limit(20),
       Memory.find({ patient: req.params.patientId }).limit(10),
+      PatientContext.findOne({ patient: req.params.patientId }),
     ])
 
-    const aiRes = await fetch(`${AI_BASE_URL}/ai/last-letter`, {
+    const aiRes = await fetch("http://localhost:8000/ai/last-letter", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         patientName,
         recipientName,
         relationship,
-        sessionData: sessions.map(s => ({
-          responses: s.responses,
-          mood: s.mood,
-        })),
-        memories: memories.map(m => ({
-          type: m.type,
-          tags: m.tags,
-          decade: m.decade,
-          transcript: m.transcript,
-        })),
+        sessionData: sessions.map(s => ({ responses: s.responses, mood: s.mood })),
+        memories: memories.map(m => ({ type: m.type, tags: m.tags, decade: m.decade, transcript: m.transcript })),
+        // Context inject karo
+        contextSummary: context?.aiContext?.letterContext || "",
+        topTags: context?.patterns?.topTriggerTags || [],
+        knownPeople: context?.knownPeople || [],
       }),
     })
 

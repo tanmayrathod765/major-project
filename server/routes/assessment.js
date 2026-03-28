@@ -1,7 +1,7 @@
 import express from "express"
 import Assessment from "../models/Assessment.js"
 import protect from "../middleware/auth.js"
-
+import { updatePatientContext } from "../services/contextEngine.js"
 const router = express.Router()
 
 // Save assessment
@@ -27,6 +27,7 @@ router.post("/:patientId", protect, async (req, res) => {
   })
 
   res.status(201).json(assessment)
+  updatePatientContext(req.params.patientId).catch(console.error)
 })
 
 // Get all assessments for patient

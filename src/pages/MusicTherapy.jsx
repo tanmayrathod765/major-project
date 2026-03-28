@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { Music, Search, Play, ExternalLink } from "lucide-react"
 import Sidebar from "../components/Sidebar"
@@ -14,7 +14,8 @@ const MusicTherapy = () => {
   const [selectedDecade, setSelectedDecade] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [playing, setPlaying] = useState(null)
-
+  const [contextSuggestions, setContextSuggestions] = useState([])
+  const [musicGuide, setMusicGuide] = useState("") 
   const searchByDecade = async (decade) => {
     setLoading(true)
     setSelectedDecade(decade)
@@ -28,18 +29,31 @@ const MusicTherapy = () => {
     setLoading(false)
   }
 
-  const searchByQuery = async () => {
-    if (!searchQuery.trim()) return
+  const searchByQuery = async (queryOverride) => {
+    const query = (queryOverride ?? searchQuery).trim()
+    if (!query) return
     setLoading(true)
     setPlaying(null)
     try {
-      const res = await api.get(`/music/search?query=${encodeURIComponent(searchQuery)}`)
+      const res = await api.get(`/music/search?query=${encodeURIComponent(query)}`)
       setVideos(res.data.videos)
     } catch {
       toast.error("Search failed")
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+  const fetchSuggestions = async () => {
+    try {
+      const res = await api.get(`/music/suggest/${id}`)
+      setVideos(res.data.videos)
+      setContextSuggestions(res.data.suggestedKeywords || [])
+      setMusicGuide(res.data.reason || "")
+    } catch {}
+  }
+  fetchSuggestions()
+}, [id])
 
   return (
     <div className="flex min-h-screen bg-soft">
@@ -51,6 +65,27 @@ const MusicTherapy = () => {
           <h1 className="text-3xl font-bold text-dark">Music Therapy</h1>
           <p className="text-muted mt-1">Play familiar songs to trigger happy memories</p>
         </div>
+
+        {musicGuide && (
+          <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 mb-4">
+            <p className="text-sm font-medium text-primary mb-1">🧠 AI Music Recommendation</p>
+            <p className="text-sm text-muted">{musicGuide}</p>
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {contextSuggestions.map((kw, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setSearchQuery(kw)
+                    searchByQuery(kw)
+                  }}
+                  className="text-xs bg-primary text-white px-3 py-1 rounded-full hover:bg-opacity-90"
+                >
+                  {kw}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">

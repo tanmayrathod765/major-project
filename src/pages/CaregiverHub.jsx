@@ -96,6 +96,18 @@ const CaregiverHub = () => {
     fetchPatient()
   }, [id])
 
+  useEffect(() => {
+  const fetchContext = async () => {
+    try {
+      const res = await api.get(`/context/${id}`)
+      if (res.data?.aiContext?.caregiverTips) {
+        setAiTip(res.data.aiContext.caregiverTips)
+      }
+    } catch {}
+  }
+  fetchContext()
+}, [id])
+
   const getAITip = async () => {
     setLoadingTip(true)
     try {

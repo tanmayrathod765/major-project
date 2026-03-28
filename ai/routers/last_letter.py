@@ -21,9 +21,57 @@ class LetterRequest(BaseModel):
     sessionData: List[dict]
     memories: List[dict]
     relationship: str = "family member"
+    contextSummary: str = ""
+    topTags: List[str] = []
+    knownPeople: List[dict] = []
 
 @router.post("/last-letter")
 async def generate_last_letter(req: LetterRequest):
+    try:
+        positive_prompts = []
+        for session in req.sessionData:
+            for response in session.get("responses", []):
+                if response.get("reaction") in ["smile", "word", "eye_contact"]:
+                    positive_prompts.append(response.get("prompt", ""))
+
+        memory_highlights = []
+        for memory in req.memories[:5]:
+            tags = ", ".join(memory.get("tags", []))
+            decade = memory.get("decade", "")
+            transcript = memory.get("transcript", "")
+            if tags or transcript:
+                memory_highlights.append(f"{decade}: {tags}. {transcript[:100] if transcript else ''}")
+
+        evidence = "\n".join([f"- Responded positively when: {p}" for p in positive_prompts[:5]])
+        memory_text = "\n".join([f"- {m}" for m in memory_highlights])
+        tag_context = ", ".join(req.topTags) if req.topTags else ""
+
+        prompt = f"""You are writing a deeply personal letter FROM {req.patientName} TO their {req.relationship} {req.recipientName}.
+
+Personal context about {req.patientName}:
+{req.contextSummary if req.contextSummary else "A person with rich life experiences"}
+
+Things that matter most to them (from their memories):
+{tag_context if tag_context else "family, memories, love"}
+
+Evidence of connection from real sessions:
+{evidence if evidence else "They visited regularly"}
+
+Their memories:
+{memory_text if memory_text else "A life full of love"}
+
+Write a warm, personal letter of 3-4 paragraphs.
+- Reference their actual memories and tags naturally
+- Use simple heartfelt language
+- Do not mention dementia
+- End with love
+- Sign as {req.patientName}"""
+
+        letter = call_groq(prompt)
+        return {"success": True, "letter": letter}
+
+    except Exception as e:
+        return {"success": False, "error": str(e), "letter": generate_fallback_letter(req.patientName, req.recipientName)}
     try:
         positive_prompts = []
         for session in req.sessionData:
