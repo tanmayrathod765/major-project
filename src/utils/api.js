@@ -1,7 +1,20 @@
 import axios from "axios"
 
+const getApiBaseUrl = () => {
+  const configuredUrl = import.meta.env.VITE_API_URL?.trim()
+
+  if (!configuredUrl) {
+    return "http://localhost:5000/api"
+  }
+
+  const withoutTrailingSlash = configuredUrl.replace(/\/+$/, "")
+  return /\/api$/.test(withoutTrailingSlash)
+    ? withoutTrailingSlash
+    : `${withoutTrailingSlash}/api`
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: getApiBaseUrl(),
 })
 
 api.interceptors.request.use((config) => {
