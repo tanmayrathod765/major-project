@@ -18,7 +18,7 @@ router.post("/:patientId", protect, async (req, res) => {
       PatientContext.findOne({ patient: req.params.patientId }),
     ])
 
-    const aiRes = await fetch("http://localhost:8000/ai/last-letter", {
+    const aiRes = await fetch(`${AI_BASE_URL}/ai/last-letter`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
