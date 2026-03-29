@@ -72,53 +72,6 @@ Write a warm, personal letter of 3-4 paragraphs.
 
     except Exception as e:
         return {"success": False, "error": str(e), "letter": generate_fallback_letter(req.patientName, req.recipientName)}
-    try:
-        positive_prompts = []
-        for session in req.sessionData:
-            for response in session.get("responses", []):
-                if response.get("reaction") in ["smile", "word", "eye_contact"]:
-                    positive_prompts.append(response.get("prompt", ""))
-
-        memory_highlights = []
-        for memory in req.memories[:5]:
-            tags = ", ".join(memory.get("tags", []))
-            decade = memory.get("decade", "")
-            transcript = memory.get("transcript", "")
-            if tags or transcript:
-                memory_highlights.append(
-                    f"{decade}: {tags}. {transcript[:100] if transcript else ''}"
-                )
-
-        evidence = "\n".join([
-            f"- Responded positively when: {p}" for p in positive_prompts[:5]
-        ])
-        memory_text = "\n".join([f"- {m}" for m in memory_highlights])
-
-        prompt = f"""You are writing a deeply personal letter FROM a dementia patient named {req.patientName} TO their {req.relationship} named {req.recipientName}.
-
-Write it as if {req.patientName} is speaking directly.
-
-Evidence of connection:
-{evidence if evidence else "They visited regularly and showed care"}
-
-Their memories:
-{memory_text if memory_text else "A life full of love and moments"}
-
-Write a warm, emotional letter of 3-4 paragraphs.
-- Use simple heartfelt language
-- Do not mention dementia
-- End with love and gratitude
-- Sign as {req.patientName}"""
-
-        letter = call_groq(prompt)
-        return {"success": True, "letter": letter}
-
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "letter": generate_fallback_letter(req.patientName, req.recipientName)
-        }
 
 def generate_fallback_letter(patient_name, recipient_name):
     return f"""Dear {recipient_name},

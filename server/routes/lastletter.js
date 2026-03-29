@@ -2,6 +2,7 @@ import express from "express"
 import fetch from "node-fetch"
 import Session from "../models/Session.js"
 import Memory from "../models/Memory.js"
+import PatientContext from "../models/PatientContext.js"
 import protect from "../middleware/auth.js"
 
 const router = express.Router()
