@@ -10,4 +10,7 @@ const gameScoreSchema = new mongoose.Schema({
   difficulty: { type: String, enum: ["easy", "medium", "hard"], default: "easy" },
 }, { timestamps: true })
 
+gameScoreSchema.index({ patient: 1, createdAt: -1 })
+gameScoreSchema.index({ patient: 1, gameType: 1, createdAt: -1 })
+
 export default mongoose.model("GameScore", gameScoreSchema)

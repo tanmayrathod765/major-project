@@ -11,11 +11,12 @@ const Sidebar = () => {
     navigate("/")
   }
 
-
-const links = [
-  { icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/dashboard" },
-  { icon: <Stethoscope size={20} />, label: "Doctor View", path: "/doctor" },
-]
+  const links = [
+    { icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/dashboard" },
+    ...(user?.role === "doctor"
+      ? [{ icon: <Stethoscope size={20} />, label: "Doctor View", path: "/doctor" }]
+      : []),
+  ]
 
   return (
     <div className="w-64 min-h-screen bg-white shadow-sm flex flex-col justify-between px-4 py-6">

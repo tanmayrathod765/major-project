@@ -5,11 +5,12 @@ import Memory from "../models/Memory.js"
 import Assessment from "../models/Assessment.js"
 import User from "../models/User.js"
 import protect from "../middleware/auth.js"
+import { requireDoctor } from "../middleware/access.js"
 
 const router = express.Router()
 
 // Get all patients doctor can see
-router.get("/patients", protect, async (req, res) => {
+router.get("/patients", protect, requireDoctor, async (req, res) => {
   try {
     const patients = await Patient.find()
       .populate("createdBy", "name email role")
@@ -47,7 +48,7 @@ router.get("/patients", protect, async (req, res) => {
 })
 
 // Get detailed patient stats for doctor
-router.get("/patient/:patientId", protect, async (req, res) => {
+router.get("/patient/:patientId", protect, requireDoctor, async (req, res) => {
   try {
     const [patient, sessions, memories, assessments] = await Promise.all([
       Patient.findById(req.params.patientId).populate("createdBy", "name email"),
@@ -96,7 +97,7 @@ router.get("/patient/:patientId", protect, async (req, res) => {
 })
 
 // Overall stats for doctor dashboard
-router.get("/stats", protect, async (req, res) => {
+router.get("/stats", protect, requireDoctor, async (req, res) => {
   try {
     const [totalPatients, totalSessions, totalAssessments, users] = await Promise.all([
       Patient.countDocuments(),

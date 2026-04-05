@@ -2,11 +2,12 @@ import express from "express"
 import Session from "../models/Session.js"
 import Memory from "../models/Memory.js"
 import protect from "../middleware/auth.js"
+import { requireDoctor } from "../middleware/access.js"
 
 const router = express.Router()
 
 // Spark Score — relationship strength per caregiver
-router.get("/spark/:patientId", protect, async (req, res) => {
+router.get("/spark/:patientId", protect, requireDoctor, async (req, res) => {
   try {
     const sessions = await Session.find({ patient: req.params.patientId })
       .populate("caregiver", "name email role")
@@ -58,7 +59,7 @@ router.get("/spark/:patientId", protect, async (req, res) => {
 })
 
 // Memory Health — which memories still trigger responses
-router.get("/memory-health/:patientId", protect, async (req, res) => {
+router.get("/memory-health/:patientId", protect, requireDoctor, async (req, res) => {
   try {
     const memories = await Memory.find({ patient: req.params.patientId })
       .sort({ responseCount: -1 })
@@ -80,7 +81,7 @@ router.get("/memory-health/:patientId", protect, async (req, res) => {
 })
 
 // Good Day Predictor — based on session history
-router.get("/predict/:patientId", protect, async (req, res) => {
+router.get("/predict/:patientId", protect, requireDoctor, async (req, res) => {
   try {
     const sessions = await Session.find({ patient: req.params.patientId })
       .sort({ createdAt: -1 })

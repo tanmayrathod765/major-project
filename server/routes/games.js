@@ -2,10 +2,11 @@ import express from "express"
 import Memory from "../models/Memory.js"
 import GameScore from "../models/GameScore.js"
 import protect from "../middleware/auth.js"
+import { requirePatientAccessParam } from "../middleware/access.js"
 
 const router = express.Router()
 
-router.post("/:patientId/score", protect, async (req, res) => {
+router.post("/:patientId/score", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
     const score = await GameScore.create({
       patient: req.params.patientId,
@@ -18,7 +19,7 @@ router.post("/:patientId/score", protect, async (req, res) => {
   }
 })
 
-router.get("/:patientId/scores", protect, async (req, res) => {
+router.get("/:patientId/scores", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
     const scores = await GameScore.find({ patient: req.params.patientId })
       .sort({ createdAt: -1 })
@@ -29,7 +30,7 @@ router.get("/:patientId/scores", protect, async (req, res) => {
   }
 })
 
-router.get("/:patientId/photos", protect, async (req, res) => {
+router.get("/:patientId/photos", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
     const memories = await Memory.find({
       patient: req.params.patientId,

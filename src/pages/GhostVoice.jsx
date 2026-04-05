@@ -2,10 +2,10 @@ import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { Mic, Download, Sparkles, AlertCircle } from "lucide-react"
 import Sidebar from "../components/Sidebar"
-import api from "../utils/api"
+import api, { getApiBaseUrl, normalizeMemoriesResponse } from "../utils/api"
 import toast from "react-hot-toast"
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+const API_BASE_URL = getApiBaseUrl()
 
 const GhostVoice = () => {
   const { id } = useParams()
@@ -24,7 +24,7 @@ const GhostVoice = () => {
   const fetchAudioMemories = async () => {
     try {
       const res = await api.get(`/memories/${id}`)
-      const audio = res.data.filter((m) => m.type === "audio")
+      const audio = normalizeMemoriesResponse(res.data).filter((m) => m.type === "audio")
       setAudioMemories(audio)
       if (audio.length > 0) setSelectedMemory(audio[0]._id)
     } catch {

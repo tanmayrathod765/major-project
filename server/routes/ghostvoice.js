@@ -5,13 +5,18 @@ import fs from "fs"
 import path from "path"
 import protect from "../middleware/auth.js"
 import Memory from "../models/Memory.js"
+import { requirePatientAccessParam } from "../middleware/access.js"
 
 const router = express.Router()
-const AI_BASE_URL = process.env.AI_URL || "http://127.0.0.1:8000"
+const AI_BASE_URL = (process.env.AI_URL || (process.env.NODE_ENV === "production" ? "" : "http://127.0.0.1:8000")).replace(/\/+$/, "")
 const uploadsDir = path.resolve(process.cwd(), "uploads")
 
-router.post("/:patientId/generate", protect, async (req, res) => {
+router.post("/:patientId/generate", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
+    if (!AI_BASE_URL) {
+      return res.status(500).json({ message: "AI service URL is not configured. Set AI_URL in server environment variables." })
+    }
+
     const { text, memoryId, language } = req.body
 
     // Get reference audio from memory

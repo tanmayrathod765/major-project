@@ -20,6 +20,9 @@ import MMSEAssessment from "./pages/MMSEAssessment"
 import DoctorDashboard from "./pages/DoctorDashboard"
 import CognitiveGames from "./pages/CognitiveGames"
 import EmotionDetection from "./pages/EmotionDetection"
+import AICompanion from "./pages/AICompanion"
+import DigitalTwin from "./pages/DigitalTwin"
+import FamilyDigest from "./pages/FamilyDigest"
 function App() {
   return (
     <AuthProvider>
@@ -40,9 +43,13 @@ function App() {
           <Route path="/patient/:id/life-story" element={<ProtectedRoute><LifeStoryBook /></ProtectedRoute>} />
           <Route path="/patient/:id/caregiver-hub" element={<ProtectedRoute><CaregiverHub /></ProtectedRoute>} />
           <Route path="/patient/:id/mmse" element={<ProtectedRoute><MMSEAssessment /></ProtectedRoute>} />
-          <Route path="/doctor" element={<ProtectedRoute><DoctorDashboard /></ProtectedRoute>} />
+          <Route path="/doctor" element={<ProtectedRoute allowedRoles={["doctor"]}><DoctorDashboard /></ProtectedRoute>} />
           <Route path="/patient/:id/cognitive-games" element={<ProtectedRoute><CognitiveGames /></ProtectedRoute>} />
           <Route path="/patient/:id/emotion" element={<ProtectedRoute><EmotionDetection /></ProtectedRoute>} />
+          <Route path="/patient/:id/companion" element={<ProtectedRoute><AICompanion /></ProtectedRoute>} />
+          <Route path="/patient/:id/digital-twin" element={<ProtectedRoute><DigitalTwin /></ProtectedRoute>} />
+          <Route path="/patient/:id/digest" element={<ProtectedRoute><FamilyDigest /></ProtectedRoute>} />
+          
         </Routes>
       </BrowserRouter>
     </AuthProvider>

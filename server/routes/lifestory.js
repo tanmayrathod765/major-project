@@ -4,11 +4,12 @@ import Session from "../models/Session.js"
 import Memory from "../models/Memory.js"
 import Patient from "../models/Patient.js"
 import protect from "../middleware/auth.js"
+import { requirePatientAccessParam } from "../middleware/access.js"
 
 const router = express.Router()
 const AI_BASE_URL = process.env.AI_URL || "http://127.0.0.1:8000"
 
-router.get("/:patientId/generate", protect, async (req, res) => {
+router.get("/:patientId/generate", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
     const [patient, memories, sessions] = await Promise.all([
       Patient.findById(req.params.patientId),

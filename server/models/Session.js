@@ -18,4 +18,7 @@ const sessionSchema = new mongoose.Schema({
   duration: { type: Number, default: 0 },
 }, { timestamps: true })
 
+sessionSchema.index({ patient: 1, createdAt: -1 })
+sessionSchema.index({ caregiver: 1, createdAt: -1 })
+
 export default mongoose.model("Session", sessionSchema)

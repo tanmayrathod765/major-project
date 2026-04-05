@@ -10,4 +10,7 @@ const patientSchema = new mongoose.Schema({
   caregivers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 }, { timestamps: true })
 
+patientSchema.index({ createdBy: 1, createdAt: -1 })
+patientSchema.index({ caregivers: 1 })
+
 export default mongoose.model("Patient", patientSchema)

@@ -2,11 +2,12 @@ import express from "express"
 import PatientContext from "../models/PatientContext.js"
 import { updatePatientContext } from "../services/contextEngine.js"
 import protect from "../middleware/auth.js"
+import { requirePatientAccessParam } from "../middleware/access.js"
 
 const router = express.Router()
 
 // Get patient context
-router.get("/:patientId", protect, async (req, res) => {
+router.get("/:patientId", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
     let context = await PatientContext.findOne({ patient: req.params.patientId })
     if (!context) {
@@ -19,7 +20,7 @@ router.get("/:patientId", protect, async (req, res) => {
 })
 
 // Force refresh context
-router.post("/:patientId/refresh", protect, async (req, res) => {
+router.post("/:patientId/refresh", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
     const context = await updatePatientContext(req.params.patientId)
     res.json(context)

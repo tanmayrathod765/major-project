@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { BookOpen, Download, Sparkles, Image, Mic, FileText, Video } from "lucide-react"
 import Sidebar from "../components/Sidebar"
-import api from "../utils/api"
+import api, { normalizeListResponse, normalizeMemoriesResponse } from "../utils/api"
 import toast from "react-hot-toast"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
@@ -26,10 +26,11 @@ const LifeStoryBook = () => {
         api.get(`/sessions/${id}`),
       ])
       setPatient(patientRes.data)
-      const memories = memoriesRes.data
+      const memories = normalizeMemoriesResponse(memoriesRes.data)
+      const sessions = normalizeListResponse(sessionsRes.data, "sessions")
       setStats({
         memories: memories.length,
-        sessions: sessionsRes.data.length,
+        sessions: sessions.length,
         photos: memories.filter((m) => m.type === "photo").length,
         audio: memories.filter((m) => m.type === "audio").length,
       })

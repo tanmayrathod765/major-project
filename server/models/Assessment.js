@@ -20,4 +20,7 @@ const assessmentSchema = new mongoose.Schema({
   notes: { type: String },
 }, { timestamps: true })
 
+assessmentSchema.index({ patient: 1, createdAt: -1 })
+assessmentSchema.index({ conductedBy: 1, createdAt: -1 })
+
 export default mongoose.model("Assessment", assessmentSchema)

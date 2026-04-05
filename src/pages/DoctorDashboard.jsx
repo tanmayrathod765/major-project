@@ -7,10 +7,12 @@ import {
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from "recharts"
 import Sidebar from "../components/Sidebar"
 import api from "../utils/api"
+import { useAuth } from "../context/AuthContext"
 import toast from "react-hot-toast"
 
 const DoctorDashboard = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [stats, setStats] = useState(null)
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,8 +20,26 @@ const DoctorDashboard = () => {
   const [filter, setFilter] = useState("all")
 
   useEffect(() => {
-    fetchAll()
-  }, [])
+    if (user?.role === "doctor") {
+      fetchAll()
+    } else {
+      setLoading(false)
+    }
+  }, [user?.role])
+
+  if (user?.role !== "doctor") {
+    return (
+      <div className="flex min-h-screen bg-soft">
+        <Sidebar />
+        <div className="flex-1 p-8">
+          <div className="bg-white rounded-2xl p-8 shadow-sm">
+            <h1 className="text-2xl font-bold text-dark mb-2">Doctor View</h1>
+            <p className="text-muted">Only doctor accounts can access this dashboard.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const fetchAll = async () => {
     try {

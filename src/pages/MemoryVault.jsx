@@ -6,7 +6,7 @@ import {
   Upload, Trash2, Eye, Plus
 } from "lucide-react"
 import Sidebar from "../components/Sidebar"
-import api from "../utils/api"
+import api, { normalizeMemoriesResponse } from "../utils/api"
 import toast from "react-hot-toast"
 
 const SERVER_BASE_URL = import.meta.env.VITE_SERVER_URL
@@ -191,7 +191,7 @@ const MemoryVault = () => {
   const fetchMemories = async () => {
     try {
       const res = await api.get(`/memories/${id}`)
-      setMemories(res.data)
+      setMemories(normalizeMemoriesResponse(res.data))
     } catch {
       toast.error("Failed to load memories")
     }
@@ -203,7 +203,7 @@ const MemoryVault = () => {
       const res = await api.post(`/memories/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
-      setMemories([res.data, ...memories])
+      setMemories((current) => [res.data, ...current])
       toast.success("Memory uploaded!")
       return true
     } catch {
@@ -215,7 +215,7 @@ const MemoryVault = () => {
   const handleDelete = async (memoryId) => {
     try {
       await api.delete(`/memories/${memoryId}`)
-      setMemories(memories.filter((m) => m._id !== memoryId))
+      setMemories((current) => current.filter((m) => m._id !== memoryId))
       toast.success("Memory deleted")
     } catch {
       toast.error("Delete failed")

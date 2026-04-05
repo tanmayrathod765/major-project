@@ -4,6 +4,9 @@ import dotenv from "dotenv"
 import "express-async-errors"
 import { createServer } from "http"
 import { WebSocketServer } from "ws"
+import jwt from "jsonwebtoken"
+import helmet from "helmet"
+import rateLimit from "express-rate-limit"
 import connectDB from "./config/db.js"
 import authRoutes from "./routes/auth.js"
 import patientRoutes from "./routes/patients.js"
@@ -18,6 +21,9 @@ import assessmentRoutes from "./routes/assessment.js"
 import doctorRoutes from "./routes/doctor.js"
 import gameRoutes from "./routes/games.js"
 import contextRoutes from "./routes/context.js"
+import companionRoutes from "./routes/companion.js"
+import digitalTwinRoutes from "./routes/digitaltwin.js"
+import digestRoutes from "./routes/digest.js"
 dotenv.config()
 connectDB()
 
@@ -37,6 +43,21 @@ wss.on("connection", (ws) => {
       const msg = JSON.parse(data)
 
       if (msg.type === "join") {
+        if (!msg.token || !msg.patientId) {
+          ws.send(JSON.stringify({ type: "error", message: "Missing token or patientId" }))
+          ws.close()
+          return
+        }
+
+        try {
+          const decoded = jwt.verify(msg.token, process.env.JWT_SECRET)
+          ws.userId = decoded.id
+        } catch {
+          ws.send(JSON.stringify({ type: "error", message: "Invalid token" }))
+          ws.close()
+          return
+        }
+
         ws.patientId = msg.patientId
         if (!rooms[msg.patientId]) rooms[msg.patientId] = []
         rooms[msg.patientId].push(ws)
@@ -86,22 +107,43 @@ const allowedOrigins = [
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",").map((value) => value.trim()) : []),
 ]
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many authentication attempts. Try again later." },
+})
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 400,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests. Please try again later." },
+})
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true)
 
     const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin)
-    const isVercelPreview = /^https:\/\/.*\.vercel\.app$/.test(origin)
+    const isVercelPreview = process.env.ALLOW_VERCEL_PREVIEW === "true" && /^https:\/\/.*\.vercel\.app$/.test(origin)
     const isAllowed = allowedOrigins.includes(origin)
 
     if (isLocalhost || isVercelPreview || isAllowed) return callback(null, true)
     return callback(new Error("Not allowed by CORS"))
   },
 }))
-app.use(express.json())
+app.disable("x-powered-by")
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}))
+app.use(express.json({ limit: "1mb" }))
+app.use("/api", apiLimiter)
 app.use("/uploads", express.static("uploads"))
 
-app.use("/api/auth", authRoutes)
+app.use("/api/auth", authLimiter, authRoutes)
 app.use("/api/patients", patientRoutes)
 app.use("/api/memories", memoryRoutes)
 app.use("/api/sessions", sessionRoutes)
@@ -114,12 +156,17 @@ app.use("/api/assessment", assessmentRoutes)
 app.use("/api/doctor", doctorRoutes)
 app.use("/api/games", gameRoutes)
 app.use("/api/context", contextRoutes)
+app.use("/api/digital-twin", digitalTwinRoutes)
+app.use("/api/digest", digestRoutes)
+app.use("/api/companion", companionRoutes)
 app.get("/api/health", (req, res) => res.json({ status: "GriefBridge API running ✅" }))
 
 app.use((err, req, res, next) => {
   console.error(err.message)
-  res.status(500).json({ message: err.message })
+  if (process.env.NODE_ENV === "production") {
+    return res.status(500).json({ message: "Internal server error" })
+  }
+  return res.status(500).json({ message: err.message })
 })
-
 const PORT = process.env.PORT || 5000
 server.listen(PORT, () => console.log("Server running on port " + PORT))

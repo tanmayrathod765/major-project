@@ -13,4 +13,8 @@ const memorySchema = new mongoose.Schema({
   responseCount: { type: Number, default: 0 },
 }, { timestamps: true })
 
+memorySchema.index({ patient: 1, createdAt: -1 })
+memorySchema.index({ patient: 1, type: 1 })
+memorySchema.index({ tags: 1 })
+
 export default mongoose.model("Memory", memorySchema)

@@ -1,11 +1,12 @@
 import express from "express"
 import Assessment from "../models/Assessment.js"
 import protect from "../middleware/auth.js"
+import { requireDoctor } from "../middleware/access.js"
 import { updatePatientContext } from "../services/contextEngine.js"
 const router = express.Router()
 
 // Save assessment
-router.post("/:patientId", protect, async (req, res) => {
+router.post("/:patientId", protect, requireDoctor, async (req, res) => {
   const { answers, notes } = req.body
 
   const totalScore = answers.reduce((sum, a) => sum + (a.points || 0), 0)
@@ -31,7 +32,7 @@ router.post("/:patientId", protect, async (req, res) => {
 })
 
 // Get all assessments for patient
-router.get("/:patientId", protect, async (req, res) => {
+router.get("/:patientId", protect, requireDoctor, async (req, res) => {
   const assessments = await Assessment.find({ patient: req.params.patientId })
     .sort({ createdAt: -1 })
     .populate("conductedBy", "name role")
@@ -39,7 +40,7 @@ router.get("/:patientId", protect, async (req, res) => {
 })
 
 // Get latest assessment
-router.get("/:patientId/latest", protect, async (req, res) => {
+router.get("/:patientId/latest", protect, requireDoctor, async (req, res) => {
   const assessment = await Assessment.findOne({ patient: req.params.patientId })
     .sort({ createdAt: -1 })
     .populate("conductedBy", "name role")

@@ -3,11 +3,14 @@ import Session from "../models/Session.js"
 import Memory from "../models/Memory.js"
 import protect from "../middleware/auth.js"
 import fetch from "node-fetch"
+import Groq from "groq-sdk"
+import PatientContext from "../models/PatientContext.js"
+import { requirePatientAccessParam, requireSessionAccess } from "../middleware/access.js"
 import { updatePatientContext } from "../services/contextEngine.js"
 const router = express.Router()
 
 // Start new session
-router.post("/:patientId/start", protect, async (req, res) => {
+router.post("/:patientId/start", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   const session = await Session.create({
     patient: req.params.patientId,
     caregiver: req.user.id,
@@ -17,14 +20,14 @@ router.post("/:patientId/start", protect, async (req, res) => {
 })
 
 // Get all sessions for patient
-router.get("/:patientId", protect, async (req, res) => {
+router.get("/:patientId", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   const sessions = await Session.find({ patient: req.params.patientId })
     .sort({ createdAt: -1 })
   res.json(sessions)
 })
 
 // Log response during session
-router.post("/:sessionId/response", protect, async (req, res) => {
+router.post("/:sessionId/response", protect, requireSessionAccess, async (req, res) => {
   const session = await Session.findById(req.params.sessionId)
   if (!session) return res.status(404).json({ message: "Session not found" })
   session.responses.push(req.body)
@@ -41,7 +44,7 @@ router.post("/:sessionId/response", protect, async (req, res) => {
 })
 
 // End session
-router.put("/:sessionId/end", protect, async (req, res) => {
+router.put("/:sessionId/end", protect, requireSessionAccess, async (req, res) => {
   const session = await Session.findByIdAndUpdate(
     req.params.sessionId,
     { duration: req.body.duration, notes: req.body.notes },
@@ -50,14 +53,7 @@ router.put("/:sessionId/end", protect, async (req, res) => {
   res.json(session)
 })
 
-// AI suggest next prompt
-// Top pe add karo
-import Groq from "groq-sdk"
-
-// Suggest route replace karo
-import PatientContext from "../models/PatientContext.js"
-
-router.post("/:patientId/suggest", protect, async (req, res) => {
+router.post("/:patientId/suggest", protect, requirePatientAccessParam("patientId"), async (req, res) => {
   try {
     const [memories, context] = await Promise.all([
       Memory.find({ patient: req.params.patientId }).sort({ responseCount: -1 }).limit(10),

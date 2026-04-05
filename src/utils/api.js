@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   const configuredUrl = import.meta.env.VITE_API_URL?.trim()
 
   if (!configuredUrl) {
@@ -11,6 +11,18 @@ const getApiBaseUrl = () => {
   return /\/api$/.test(withoutTrailingSlash)
     ? withoutTrailingSlash
     : `${withoutTrailingSlash}/api`
+}
+
+export const normalizeMemoriesResponse = (data) => {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.memories)) return data.memories
+  return []
+}
+
+export const normalizeListResponse = (data, key) => {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.[key])) return data[key]
+  return []
 }
 
 const api = axios.create({
