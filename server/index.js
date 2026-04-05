@@ -103,9 +103,12 @@ wss.on("connection", (ws) => {
   })
 })
 
-const allowedOrigins = [
+const allowedOrigins = new Set([
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",").map((value) => value.trim()) : []),
-]
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null,
+  "https://major-project-ge23-brown.vercel.app",
+].filter(Boolean))
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -129,7 +132,7 @@ app.use(cors({
 
     const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin)
     const isVercelPreview = process.env.ALLOW_VERCEL_PREVIEW === "true" && /^https:\/\/.*\.vercel\.app$/.test(origin)
-    const isAllowed = allowedOrigins.includes(origin)
+    const isAllowed = allowedOrigins.has(origin)
 
     if (isLocalhost || isVercelPreview || isAllowed) return callback(null, true)
     return callback(new Error("Not allowed by CORS"))
